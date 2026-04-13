@@ -51,7 +51,7 @@ class SettingsController extends Controller
 
             $aboutUs = TermsCondition::updateOrCreate(['id'=>1],['terms_condition' => $request->terms_condition]);
 
-            return $this->successResponse($aboutUs,'About Us saved successfully',200);
+            return $this->successResponse($aboutUs,'Terms and Condition saved successfully',200);
         }catch (\Exception $exception){
             return $this->errorResponse($exception->getMessage(),'Something went wrong',500);
         }
@@ -60,7 +60,7 @@ class SettingsController extends Controller
     public function getTermsCondition(){
         try {
             $aboutUs = TermsCondition::first();
-            return $this->successResponse($aboutUs,'About Us saved successfully',200);
+            return $this->successResponse($aboutUs,'Terms and Condition fetched successfully',200);
         }catch (\Exception $exception){
             return $this->errorResponse($exception->getMessage(),'Something went wrong',500);
         }
@@ -79,7 +79,7 @@ class SettingsController extends Controller
 
             $aboutUs = PrivacyPolicy::updateOrCreate(['id'=>1],['privacy_policy' => $request->privacy_policy]);
 
-            return $this->successResponse($aboutUs,'About Us saved successfully',200);
+            return $this->successResponse($aboutUs,'Privacy Policy saved successfully',200);
         }catch (\Exception $exception){
             return $this->errorResponse($exception->getMessage(),'Something went wrong',500);
         }
@@ -88,7 +88,7 @@ class SettingsController extends Controller
     public function getPrivacyPolicy(){
         try {
             $aboutUs = PrivacyPolicy::first();
-            return $this->successResponse($aboutUs,'About Us saved successfully',200);
+            return $this->successResponse($aboutUs,'Privacy Policy successfully retrieve',200);
         }catch (\Exception $exception){
             return $this->errorResponse($exception->getMessage(),'Something went wrong',500);
         }
