@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{baseURL}}/auth/login"
+method: POST
+body:
+  type: formdata
+  content:
+    - type: text
+      key: email
+      value: rubayetislam16@gmail.com
+    - type: text
+      key: password
+      value: "12345678"
+order: 2000

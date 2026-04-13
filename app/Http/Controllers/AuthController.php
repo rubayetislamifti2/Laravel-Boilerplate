@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\OTP;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -28,13 +30,15 @@ class AuthController extends Controller
 
             $data = $validator->validated();
 
-            $otp = rand(1000,9999);
-            $otpExpire = Carbon::now()->addMinutes(10);
+            $otp = rand(100000,999999);
+            $otpExpire = Carbon::now('UTC')->addMinutes(10);
 
             $data['otp'] = $otp;
             $data['expired_at'] = $otpExpire;
 
             $register = User::create($data);
+
+            Mail::to($register->email)->send(new OTP($otp, $otpExpire, $register));
             return $this->successResponse($register,'Registration successful',201);
         }catch (\Exception $exception){
             return $this->errorResponse($exception->getMessage(),'Something went wrong',500);
@@ -59,7 +63,7 @@ class AuthController extends Controller
             if (!$check) {
                 return $this->successResponse('Invalid OTP','Invalid OTP',422);
             }
-            if (Carbon::parse($check->expired_at) < Carbon::now()) {
+            if (Carbon::parse($check->expired_at) < Carbon::now('UTC')) {
                 return $this->successResponse('OTP Expired','OTP Expired',422);
             }
 
@@ -84,13 +88,15 @@ class AuthController extends Controller
             }
 
             $otp = rand(1000,9999);
-            $otpExpire = Carbon::now()->addMinutes(10);
+            $otpExpire = Carbon::now('UTC')->addMinutes(10);
 
             $user = User::where('email',$request->email)->first();
 
             $user->otp = $otp;
-            $user->otp_expire = $otpExpire;
+            $user->expired_at = $otpExpire;
             $user->save();
+
+            Mail::to($user->email)->send(new OTP($otp, $otpExpire, $user));
             return $this->successResponse($otp,'OTP send successfully',200);
         }catch (\Exception $exception){
             return $this->errorResponse($exception->getMessage(),'Something went wrong',500);
@@ -142,14 +148,17 @@ class AuthController extends Controller
 
             $user->password = $request->password;
             $user->save();
+
+            JWTAuth::invalidate(JWTAuth::getToken());
             Auth::logout();
+
             return $this->successResponse($user,'Password Changed Successfully. Please Login Again',200);
         }catch (\Exception $exception){
             return $this->errorResponse($exception->getMessage(),'Something went wrong',500);
         }
     }
 
-    public function forgetPasswordOTPSend(Request $request)
+    public function forgetPassword(Request $request)
     {
         try {
             $validator = Validator::make($request->all(),[
@@ -164,19 +173,21 @@ class AuthController extends Controller
 
             $email = User::where('email',$request->email)->first();
             $otp = rand(1000,9999);
-            $otpExpire = Carbon::now()->addMinutes(10);
+            $otpExpire = Carbon::now('UTC')->addMinutes(10);
 
             $email->otp = $otp;
-            $email->otp_expire = $otpExpire;
+            $email->expired_at = $otpExpire;
             $email->save();
 
+            // Mail::to($email->email)->send(new OTP($otp, $otpExpire, $email));
+            
             return $this->successResponse($email,'OTP Send successfully',200);
         }catch (\Exception $exception){
             return $this->errorResponse($exception->getMessage(),'Something went wrong',500);
         }
     }
 
-    public function forgetPassword(Request $request)
+    public function resetPassword(Request $request)
     {
         try {
             $validator = Validator::make($request->all(),[
@@ -193,7 +204,7 @@ class AuthController extends Controller
 
             $check->password = $request->password;
             $check->otp = null;
-            $check->otp_expire = null;
+            $check->expired_at = null;
             $check->save();
 
         }catch (\Exception $exception){

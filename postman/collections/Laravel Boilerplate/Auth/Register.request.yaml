@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseURL}}/auth/register"
+method: POST
+body:
+  type: formdata
+  content:
+    - type: text
+      key: email
+      value: rubayetislam16@gmail.com
+    - type: text
+      key: name
+      value: Rubayet
+    - type: text
+      key: password
+      value: "12345678"
+    - type: text
+      key: password_confirmation
+      value: "12345678"
+order: 1000
